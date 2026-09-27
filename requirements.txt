@@ -1,0 +1,4 @@
+# Основне середовище: Python 3.13+
+googletrans==4.0.2
+deep-translator==1.11.4
+langdetect==1.0.9

@@ -1,0 +1,5 @@
+# Окреме середовище Python 3.11 для модуля googletrans 3.1.0a0.
+# Не встановлюйте цей файл у те саме середовище, що й requirements.txt:
+# версії googletrans між собою несумісні.
+googletrans==3.1.0a0
+langdetect==1.0.9

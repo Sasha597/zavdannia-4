@@ -1,0 +1,7 @@
+{
+  "input_file": "sample_uk.txt",
+  "target_language": "en",
+  "module": "gtrans4",
+  "output": "screen",
+  "sentence_count": 3
+}

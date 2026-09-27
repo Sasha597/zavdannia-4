@@ -95,6 +95,36 @@ def editor_image() -> str:
     return svg(1200, 720, elements)
 
 
+def terminal_panel(command: str, output: str) -> str:
+    """Зображення у стилі прикладу користувача з видимим маркуванням."""
+    lines: list[str] = []
+    for line in output.strip().splitlines():
+        lines.extend(wrap(line, width=93, break_long_words=False) or [""])
+    if len(lines) > 12:
+        raise ValueError(f"Вивід {command} задовгий для ілюстрації.")
+
+    elements = [
+        rect(0, 0, 1200, 540, "#2d3340"),
+        rect(15, 64, 1170, 415, "#0a0f16"),
+        rect(0, 0, 1200, 56, "#ffd166"),
+        text(
+            19, 36, "ІЛЮСТРАЦІЯ З РЕАЛЬНОГО ВИВОДУ REPLIT · НЕ СКРИНШОТ VS CODE",
+            "#22202c", 20, "bold",
+        ),
+        text(26, 102, f"$ python {command}", "#d6dee7", 20),
+    ]
+    for index, line in enumerate(lines):
+        elements.append(text(26, 142 + index * 27, line, "#d6dee7", 19))
+    elements += [
+        rect(0, 490, 1200, 50, "#29313e"),
+        text(
+            19, 523, "Зразок оформлення — не доказ роботи середовища «Чумако»",
+            "#fff2c2", 17, "bold",
+        ),
+    ]
+    return svg(1200, 540, elements)
+
+
 def terminal_image() -> str:
     if sys.version_info < (3, 13):
         raise RuntimeError("Ілюстрація помилки gtrans3 потребує Python 3.13+.")
@@ -106,31 +136,21 @@ def terminal_image() -> str:
         check=True,
         timeout=15,
     )
-    output_lines: list[str] = []
-    for line in result.stdout.splitlines():
-        output_lines.extend(wrap(line, width=84, break_long_words=False) or [""])
+    return terminal_panel("gtrans3.py", result.stdout)
 
-    elements = [
-        rect(0, 0, 1200, 560, "#15181e"),
-        rect(0, 0, 1200, 58, "#ffd166"),
-        text(
-            24, 37, "ДЕМОНСТРАЦІЙНЕ ЗОБРАЖЕННЯ — НЕ СКРИНШОТ ТЕРМІНАЛА",
-            "#22202c", 21, "bold",
-        ),
-        rect(0, 58, 1200, 42, "#242831"),
-        text(22, 86, "Вивід запуску в Replit · оформлення як термінал", "#ffffff", 16),
-        text(28, 141, "$ python gtrans3.py", "#9cdcfe", 21),
-    ]
-    for index, line in enumerate(output_lines[:11]):
-        elements.append(text(28, 187 + index * 34, line, "#e9e9e9", 19))
-    elements += [
-        rect(0, 504, 1200, 56, "#713d0b"),
-        text(
-            22, 539, "Не є доказом роботи середовища «Чумако» або VS Code",
-            "#ffffff", 18, "bold",
-        ),
-    ]
-    return svg(1200, 560, elements)
+
+def filetr_image() -> str:
+    result = subprocess.run(
+        [sys.executable, "filetr.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=40,
+    )
+    if "Мова перекладу: english (en)" not in result.stdout or "Переклад:\n" not in result.stdout:
+        raise RuntimeError(f"filetr.py не повернув очікуваний переклад: {result.stdout}")
+    return terminal_panel("filetr.py", result.stdout)
 
 
 def build() -> None:
@@ -141,6 +161,7 @@ def build() -> None:
     for name, image in (
         ("editor_demo", editor_image()),
         ("terminal_demo", terminal_image()),
+        ("filetr_demo", filetr_image()),
     ):
         svg_file = OUTPUT / f"{name}.svg"
         png_file = OUTPUT / f"{name}.png"

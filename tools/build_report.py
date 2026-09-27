@@ -8,6 +8,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "report" / "Звіт_ЛР4_Чумако.docx"
+ILLUSTRATIONS = ROOT / "report" / "illustrations"
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -23,6 +24,32 @@ def paragraph(text: str, style: str = "Normal", *, page_break: bool = False) -> 
 
 def section(title: str, lines: list[str]) -> list[str]:
     return [paragraph(title, "Heading1")] + [paragraph(line) for line in lines]
+
+
+def image(name: str, rel_id: str, image_id: int, height: int) -> str:
+    """Вставити PNG завширшки 6 дюймів з альтернативним описом."""
+    width = 5486400
+    description = escape(f"Навчальна ілюстрація {name}; не скриншот фактичного запуску.")
+    return (
+        '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>'
+        '<wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+        'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+        'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        f'<wp:extent cx="{width}" cy="{height}"/>'
+        f'<wp:docPr id="{image_id}" name="{escape(name)}" descr="{description}"/>'
+        '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        '<pic:pic><pic:nvPicPr>'
+        f'<pic:cNvPr id="{image_id}" name="{escape(name)}"/>'
+        '<pic:cNvPicPr/></pic:nvPicPr>'
+        '<pic:blipFill>'
+        f'<a:blip r:embed="{rel_id}"/>'
+        '<a:stretch><a:fillRect/></a:stretch>'
+        '</pic:blipFill><pic:spPr><a:xfrm>'
+        f'<a:off x="0" y="0"/><a:ext cx="{width}" cy="{height}"/>'
+        '</a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        '</pic:spPr></pic:pic></a:graphicData></a:graphic>'
+        '</wp:inline></w:drawing></w:r></w:p>'
+    )
 
 
 def document_xml() -> str:
@@ -102,9 +129,22 @@ def document_xml() -> str:
     for line in (ROOT / "filetr.py").read_text(encoding="utf-8").splitlines():
         body.append(paragraph(line, "Code"))
 
+    body.append(paragraph("", page_break=True))
     body.extend(
         section(
-            "5. Скриншоти, які слід додати перед здачею",
+            "5. Демонстраційні макети — не докази виконання",
+            [
+                "Наведені нижче зображення створено для ілюстрації оформлення. Це не скриншоти VS Code чи термінала студента і вони не підтверджують створення локального віртуального середовища «Чумако».",
+            ],
+        )
+    )
+    body.append(image("Макет редактора", "rId2", 1, 3291840))
+    body.append(paragraph("Рис. 1. Макет вигляду редактора зі структурою проєкту (не скриншот VS Code)."))
+    body.append(image("Макет термінала", "rId3", 2, 2560320))
+    body.append(paragraph("Рис. 2. Оформлення фактичного текстового виводу gtrans3.py на Python 3.13 у Replit; не скриншот середовища студента."))
+    body.extend(
+        section(
+            "5.1. Справжні скриншоти, які слід додати перед здачею",
             [
                 "[МІСЦЕ ДЛЯ СКРІНШОТА 1] Вікно VS Code: Explorer зі структурою завершеного проєкту, рядок стану з активним Python-середовищем «Чумако» і фрагмент filetr.py.",
                 "[МІСЦЕ ДЛЯ СКРІНШОТІВ 2–4] Термінал із запуском gtrans4.py, deeptr.py, gtrans3.py на Python 3.11 та filetr.py. Видно активне середовище і цільову мову en, яку вказано в config.json.",
@@ -149,6 +189,7 @@ def build() -> Path:
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
         '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Default Extension="png" ContentType="image/png"/>'
         '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
         '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
         "</Types>"
@@ -188,8 +229,17 @@ def build() -> Path:
         document.writestr(
             "word/_rels/document.xml.rels",
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId2" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            'Target="media/editor_demo.png"/>'
+            '<Relationship Id="rId3" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            'Target="media/terminal_demo.png"/>'
+            '</Relationships>',
         )
+        for filename in ("editor_demo.png", "terminal_demo.png"):
+            document.write(ILLUSTRATIONS / filename, f"word/media/{filename}")
     return REPORT
 
 

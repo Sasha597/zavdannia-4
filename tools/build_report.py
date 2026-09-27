@@ -140,8 +140,10 @@ def document_xml() -> str:
     )
     body.append(image("Макет редактора", "rId2", 1, 3291840))
     body.append(paragraph("Рис. 1. Макет вигляду редактора зі структурою проєкту (не скриншот VS Code)."))
-    body.append(image("Макет термінала", "rId3", 2, 2560320))
-    body.append(paragraph("Рис. 2. Оформлення фактичного текстового виводу gtrans3.py на Python 3.13 у Replit; не скриншот середовища студента."))
+    body.append(image("Приклад виводу filetr.py", "rId4", 3, 2468880))
+    body.append(paragraph("Рис. 2. Реальний текстовий вивід filetr.py у Replit, оформлений за зразком; не скриншот VS Code чи середовища «Чумако»."))
+    body.append(image("Приклад помилки gtrans3.py", "rId3", 2, 2468880))
+    body.append(paragraph("Рис. 3. Реальний текстовий вивід gtrans3.py на Python 3.13 у Replit, оформлений за зразком; не скриншот середовища студента."))
     body.extend(
         section(
             "5.1. Справжні скриншоти, які слід додати перед здачею",
@@ -236,9 +238,12 @@ def build() -> Path:
             '<Relationship Id="rId3" '
             'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
             'Target="media/terminal_demo.png"/>'
+            '<Relationship Id="rId4" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            'Target="media/filetr_demo.png"/>'
             '</Relationships>',
         )
-        for filename in ("editor_demo.png", "terminal_demo.png"):
+        for filename in ("editor_demo.png", "terminal_demo.png", "filetr_demo.png"):
             document.write(ILLUSTRATIONS / filename, f"word/media/{filename}")
     return REPORT
 
